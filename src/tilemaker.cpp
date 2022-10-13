@@ -256,6 +256,11 @@ int main(int argc, char* argv[]) {
 	}
 
 	// ----	Read JSON config
+  	cout << "config json: " << jsonFile << endl;
+	cout << "process lua: " << luaFile << endl;
+
+
+
 
 	rapidjson::Document jsonConfig;
 	class Config config;
