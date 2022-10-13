@@ -59,6 +59,7 @@ OsmLuaProcessing::OsmLuaProcessing(
 		.addFunction("Accept", &OsmLuaProcessing::Accept)
 		.addFunction("NextRelation", &OsmLuaProcessing::NextRelation)
 		.addFunction("FindInRelation", &OsmLuaProcessing::FindInRelation)
+		.addFunction("GetMultilingualName", &OsmLuaProcessing::GetMultilingualName)
 	);
 	supportsRemappingShapefiles = !!luaState["attribute_function"];
 	supportsReadingRelations    = !!luaState["relation_scan_function"];
@@ -120,6 +121,38 @@ string OsmLuaProcessing::Find(const string& key) const {
 	auto it = currentTags.find(key);
 	if(it == currentTags.end()) return "";
 	return it->second;
+}
+
+// store all the names, return name count
+string OsmLuaProcessing::GetMultilingualName() const {
+  string _nameml = "";
+  // look for base name
+  auto it = currentTags.find("name");
+  if (it != currentTags.end()) { // has base name
+    // store base name
+    auto &basename = it->second;
+    _nameml = basename;
+    //    this->Attribute(it->first,basename);
+    //    cout << "base_name: " << basename << "--\n";
+
+    for(auto it=currentTags.begin(); it!=currentTags.end(); ++it) {
+      auto tag = it->first;
+      if (tag.find("name:") == 0) {
+        transform(tag.begin(), tag.end(), tag.begin(), ::tolower);// make case consistent - lower
+        auto &name = it->second;
+        // store only if different from base name
+        if (name != basename) {
+        //          cout << tag << ' ' << name << "--\n";
+          _nameml += "*";//"\r";
+          _nameml += tag.substr(5);
+          _nameml += ":";//"\b";
+          _nameml += name;
+        }
+      }
+    }
+    cout << "nameml: " << _nameml << "--\n";
+  }
+  return (const string)_nameml;
 }
 
 // ----	Spatial queries called from Lua

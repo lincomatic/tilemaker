@@ -94,6 +94,9 @@ public:
 	// Get an OSM tag for a given key (or return empty string if none)
 	std::string Find(const std::string& key) const;
 
+        // get a multilingual name string
+        std::string GetMultilingualName() const;
+
 	// ----	Spatial queries called from Lua
 
 	// Find intersecting shapefile layer
