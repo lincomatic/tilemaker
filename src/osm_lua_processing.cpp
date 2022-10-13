@@ -150,7 +150,7 @@ string OsmLuaProcessing::GetMultilingualName() const {
         }
       }
     }
-    cout << "nameml: " << _nameml << "--\n";
+    //    cout << "nameml: " << _nameml << "--\n";
   }
   return (const string)_nameml;
 }
