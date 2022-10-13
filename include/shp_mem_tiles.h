@@ -7,7 +7,7 @@
 class ShpMemTiles : public TileDataSource
 {
 public:
-	ShpMemTiles(OSMStore &osmStore, uint baseZoom);
+	ShpMemTiles(OSMStore &osmStore, unsigned int baseZoom);
 
 	void CreateNamedLayerIndex(const std::string &layerName);
 
@@ -16,15 +16,15 @@ public:
 		const std::string &layerName, 
 		enum OutputGeometryType geomType,
 		Geometry geometry, 
-		bool isIndexed, bool hasName, const std::string &name, AttributeStoreRef attributes, uint minzoom);
+		bool isIndexed, bool hasName, const std::string &name, AttributeStoreRef attributes, unsigned int minzoom);
 
 	void AddObject(TileCoordinates const &index, OutputObjectRef const &oo) {
 		tileIndex[index].push_back(oo);
 	}
-	std::vector<uint> QueryMatchingGeometries(const std::string &layerName, bool once, Box &box, 
+	std::vector<unsigned int> QueryMatchingGeometries(const std::string &layerName, bool once, Box &box, 
 		std::function<std::vector<IndexValue>(const RTree &rtree)> indexQuery, 
 		std::function<bool(OutputObject const &oo)> checkQuery) const;
-	std::vector<std::string> namesOfGeometries(const std::vector<uint> &ids) const;
+	std::vector<std::string> namesOfGeometries(const std::vector<unsigned int> &ids) const;
 
 	template <typename GeometryT>
 	double AreaIntersecting(const std::string &layerName, GeometryT &g) const {
@@ -55,7 +55,7 @@ private:
 	OSMStore &osmStore;
 
 	std::vector<OutputObjectRef> cachedGeometries;					// prepared boost::geometry objects (from shapefiles)
-	std::map<uint, std::string> cachedGeometryNames;			//  | optional names for each one
+	std::map<unsigned int, std::string> cachedGeometryNames;			//  | optional names for each one
 	std::map<std::string, RTree> indices;			// Spatial indices, boost::geometry::index objects for shapefile indices
 };
 

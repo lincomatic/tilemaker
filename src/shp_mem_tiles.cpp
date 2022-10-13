@@ -3,7 +3,7 @@
 using namespace std;
 namespace geom = boost::geometry;
 
-ShpMemTiles::ShpMemTiles(OSMStore &osmStore, uint baseZoom)
+ShpMemTiles::ShpMemTiles(OSMStore &osmStore, unsigned int baseZoom)
 	: TileDataSource(baseZoom), osmStore(osmStore)
 { }
 
@@ -13,7 +13,7 @@ ShpMemTiles::ShpMemTiles(OSMStore &osmStore, uint baseZoom)
 // - bounding box to match against
 // - indexQuery(rtree, results) lambda, implements: rtree.query(geom::index::covered_by(box), back_inserter(results))
 // - checkQuery(osmstore, id) lambda, implements:   return geom::covered_by(osmStore.retrieve(id), geom)
-vector<uint> ShpMemTiles::QueryMatchingGeometries(const string &layerName, bool once, Box &box, 
+vector<unsigned int> ShpMemTiles::QueryMatchingGeometries(const string &layerName, bool once, Box &box, 
 	function<vector<IndexValue>(const RTree &rtree)> indexQuery, 
 	function<bool(OutputObject const &oo)> checkQuery) const {
 	
@@ -21,24 +21,24 @@ vector<uint> ShpMemTiles::QueryMatchingGeometries(const string &layerName, bool 
 	auto f = indices.find(layerName); // f is an RTree
 	if (f==indices.end()) {
 		cerr << "Couldn't find indexed layer " << layerName << endl;
-		return vector<uint>();	// empty, relations not supported
+		return vector<unsigned int>();	// empty, relations not supported
 	}
 	
 	// Run the index query
 	vector<IndexValue> results = indexQuery(f->second);
 	
 	// Run the check query
-	vector<uint> ids;
+	vector<unsigned int> ids;
 	for (auto it: results) {
-		uint id = it.second;
+		unsigned int id = it.second;
 		if (checkQuery(*cachedGeometries.at(id))) { ids.push_back(id); if (once) break; }
 	}
 	return ids;
 }
 
-vector<string> ShpMemTiles::namesOfGeometries(const vector<uint> &ids) const {
+vector<string> ShpMemTiles::namesOfGeometries(const vector<unsigned int> &ids) const {
 	vector<string> names;
-	for (uint i=0; i<ids.size(); i++) {
+	for (unsigned int i=0; i<ids.size(); i++) {
 		if (cachedGeometryNames.find(ids[i])!=cachedGeometryNames.end()) {
 			names.push_back(cachedGeometryNames.at(ids[i]));
 		}
@@ -52,12 +52,12 @@ void ShpMemTiles::CreateNamedLayerIndex(const std::string &layerName) {
 
 OutputObjectRef ShpMemTiles::AddObject(uint_least8_t layerNum,
 	const std::string &layerName, enum OutputGeometryType geomType,
-	Geometry geometry, bool isIndexed, bool hasName, const std::string &name, AttributeStoreRef attributes, uint minzoom) {
+	Geometry geometry, bool isIndexed, bool hasName, const std::string &name, AttributeStoreRef attributes, unsigned int minzoom) {
 
 	geom::model::box<Point> box;
 	geom::envelope(geometry, box);
 
-	uint id = cachedGeometries.size();
+	unsigned int id = cachedGeometries.size();
 	if (isIndexed) {
 		indices.at(layerName).insert(std::make_pair(box, id));
 		if (hasName) cachedGeometryNames[id]=name;
@@ -65,7 +65,7 @@ OutputObjectRef ShpMemTiles::AddObject(uint_least8_t layerNum,
 
 	OutputObjectRef oo;
 
-	uint tilex = 0, tiley = 0;
+	unsigned int tilex = 0, tiley = 0;
 	switch(geomType) {
 		case POINT_:
 		{
@@ -116,12 +116,12 @@ OutputObjectRef ShpMemTiles::AddObject(uint_least8_t layerNum,
 
 // Add an OutputObject to all tiles between min/max lat/lon
 void ShpMemTiles::addToTileIndexByBbox(OutputObjectRef &oo, double minLon, double minLatp, double maxLon, double maxLatp) {
-	uint minTileX =  lon2tilex(minLon, baseZoom);
-	uint maxTileX =  lon2tilex(maxLon, baseZoom);
-	uint minTileY = latp2tiley(minLatp, baseZoom);
-	uint maxTileY = latp2tiley(maxLatp, baseZoom);
-	for (uint x=min(minTileX,maxTileX); x<=max(minTileX,maxTileX); x++) {
-		for (uint y=min(minTileY,maxTileY); y<=max(minTileY,maxTileY); y++) {
+	unsigned int minTileX =  lon2tilex(minLon, baseZoom);
+	unsigned int maxTileX =  lon2tilex(maxLon, baseZoom);
+	unsigned int minTileY = latp2tiley(minLatp, baseZoom);
+	unsigned int maxTileY = latp2tiley(maxLatp, baseZoom);
+	for (unsigned int x=min(minTileX,maxTileX); x<=max(minTileX,maxTileX); x++) {
+		for (unsigned int y=min(minTileY,maxTileY); y<=max(minTileY,maxTileY); y++) {
 			TileCoordinates index(x, y);
 			AddObject(index, oo);
 		}
@@ -133,16 +133,16 @@ void ShpMemTiles::addToTileIndexPolyline(OutputObjectRef &oo, Geometry *geom) {
 
 	const Linestring *ls = boost::get<Linestring>(geom);
 	if(ls == nullptr) return;
-	uint lastx = UINT_MAX;
-	uint lasty;
+	unsigned int lastx = UINT_MAX;
+	unsigned int lasty;
 	for (Linestring::const_iterator jt = ls->begin(); jt != ls->end(); ++jt) {
-		uint tilex =  lon2tilex(jt->get<0>(), baseZoom);
-		uint tiley = latp2tiley(jt->get<1>(), baseZoom);
+		unsigned int tilex =  lon2tilex(jt->get<0>(), baseZoom);
+		unsigned int tiley = latp2tiley(jt->get<1>(), baseZoom);
 		if (lastx==UINT_MAX) {
 			AddObject(TileCoordinates(tilex, tiley), oo);
 		} else if (lastx!=tilex || lasty!=tiley) {
-			for (uint x=min(tilex,lastx); x<=max(tilex,lastx); x++) {
-				for (uint y=min(tiley,lasty); y<=max(tiley,lasty); y++) {
+			for (unsigned int x=min(tilex,lastx); x<=max(tilex,lastx); x++) {
+				for (unsigned int y=min(tiley,lasty); y<=max(tiley,lasty); y++) {
 					AddObject(TileCoordinates(x, y), oo);
 				}
 			}

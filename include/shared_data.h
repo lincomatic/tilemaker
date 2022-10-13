@@ -15,21 +15,21 @@
 ///\brief Defines map single layer appearance
 struct LayerDef {
 	std::string name;
-	uint minzoom;
-	uint maxzoom;
-	uint simplifyBelow;
+	unsigned int minzoom;
+	unsigned int maxzoom;
+	unsigned int simplifyBelow;
 	double simplifyLevel;
 	double simplifyLength;
 	double simplifyRatio;
-	uint filterBelow;
+	unsigned int filterBelow;
 	double filterArea;
-	uint combinePolygonsBelow;
+	unsigned int combinePolygonsBelow;
 	std::string source;
 	std::vector<std::string> sourceColumns;
 	bool allSourceColumns;
 	bool indexed;
 	std::string indexName;
-	std::map<std::string, uint> attributeMap;
+	std::map<std::string, unsigned int> attributeMap;
 	bool writeTo;
 };
 
@@ -38,13 +38,13 @@ class LayerDefinition {
 
 public:	
 	std::vector<LayerDef> layers;				// List of layers
-	std::map<std::string,uint> layerMap;				// Layer->position map
-	std::vector<std::vector<uint> > layerOrder;		// Order of (grouped) layers, e.g. [ [0], [1,2,3], [4] ]
+	std::map<std::string,unsigned int> layerMap;				// Layer->position map
+	std::vector<std::vector<unsigned int> > layerOrder;		// Order of (grouped) layers, e.g. [ [0], [1,2,3], [4] ]
 
 	// Define a layer (as read from the .json file)
-	uint addLayer(std::string name, uint minzoom, uint maxzoom,
-			uint simplifyBelow, double simplifyLevel, double simplifyLength, double simplifyRatio, 
-			uint filterBelow, double filterArea, uint combinePolygonsBelow,
+	unsigned int addLayer(std::string name, unsigned int minzoom, unsigned int maxzoom,
+			unsigned int simplifyBelow, double simplifyLevel, double simplifyLength, double simplifyRatio, 
+			unsigned int filterBelow, double filterArea, unsigned int combinePolygonsBelow,
 			const std::string &source,
 			const std::vector<std::string> &sourceColumns,
 			bool allSourceColumns,
@@ -61,8 +61,8 @@ class Config {
 	
 public:
 	class LayerDefinition layers;
-	uint baseZoom, startZoom, endZoom;
-	uint mvtVersion, combineBelow;
+	unsigned int baseZoom, startZoom, endZoom;
+	unsigned int mvtVersion, combineBelow;
 	bool includeID, compress, gzip, highResolution;
 	std::string compressOpt;
 	bool clippingBoxFromJSON;

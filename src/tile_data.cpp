@@ -9,7 +9,7 @@ using namespace std;
 
 typedef std::pair<OutputObjectsConstIt,OutputObjectsConstIt> OutputObjectsConstItPair;
 
-void TileDataSource::MergeTileCoordsAtZoom(uint zoom, uint baseZoom, const TileIndex &srcTiles, TileCoordinatesSet &dstCoords) {
+void TileDataSource::MergeTileCoordsAtZoom(unsigned int zoom, unsigned int baseZoom, const TileIndex &srcTiles, TileCoordinatesSet &dstCoords) {
 	if (zoom==baseZoom) {
 		// at z14, we can just use tileIndex
 		for (auto it = srcTiles.begin(); it!= srcTiles.end(); ++it) {
@@ -29,7 +29,7 @@ void TileDataSource::MergeTileCoordsAtZoom(uint zoom, uint baseZoom, const TileI
 	}
 }
 
-void TileDataSource::MergeSingleTileDataAtZoom(TileCoordinates dstIndex, uint zoom, uint baseZoom, const TileIndex &srcTiles, std::vector<OutputObjectRef> &dstTile) {
+void TileDataSource::MergeSingleTileDataAtZoom(TileCoordinates dstIndex, unsigned int zoom, unsigned int baseZoom, const TileIndex &srcTiles, std::vector<OutputObjectRef> &dstTile) {
 	if (zoom==baseZoom) {
 		// at z14, we can just use tileIndex
 		auto oosetIt = srcTiles.find(dstIndex);

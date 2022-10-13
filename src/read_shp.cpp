@@ -7,15 +7,15 @@ namespace geom = boost::geometry;
 	Read shapefiles into Boost geometries
 */
 
-void fillPointArrayFromShapefile(vector<Point> *points, SHPObject *shape, uint part) {
-	uint start = shape->panPartStart[part];
-	uint end   = (int(part)==shape->nParts-1) ? shape->nVertices : shape->panPartStart[part+1];
+void fillPointArrayFromShapefile(vector<Point> *points, SHPObject *shape, unsigned int part) {
+	unsigned int start = shape->panPartStart[part];
+	unsigned int end   = (int(part)==shape->nParts-1) ? shape->nVertices : shape->panPartStart[part+1];
     double* const x = shape->padfX;
     double* const y = shape->padfY;
 	points->clear(); if (points->capacity() < (end-start)+1) { points->reserve(end-start+1); }
 	double prevx = 1000;
 	double prevy = 1000;
-	for (uint i=start; i<end; i++) {
+	for (unsigned int i=start; i<end; i++) {
 		y[i] = fmin(fmax(y[i], MinLat),MaxLat);	// To avoid infinite latp
 		double latp = lat2latp(y[i]);
 		// skip duplicated point
@@ -112,7 +112,7 @@ void addShapefileAttributes(
 // Read shapefile, and create OutputObjects for all objects within the specified bounding box
 void readShapefile(const Box &clippingBox, 
 				   class LayerDefinition &layers,
-                   uint baseZoom, uint layerNum,
+                   unsigned int baseZoom, unsigned int layerNum,
 				   class ShpMemTiles &shpMemTiles,
 				   OsmLuaProcessing &osmLuaProcessing)
 {

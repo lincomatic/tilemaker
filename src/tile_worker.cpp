@@ -190,8 +190,8 @@ vector_tile::Tile_Layer* findLayerByName(vector_tile::Tile &tile, std::string &l
 }
 
 void ProcessLayer(OSMStore &osmStore,
-    TileCoordinates index, uint zoom, std::vector<OutputObjectRef> const &data, vector_tile::Tile &tile, 
-	const TileBbox &bbox, const std::vector<uint> &ltx, SharedData &sharedData)
+    TileCoordinates index, unsigned int zoom, std::vector<OutputObjectRef> const &data, vector_tile::Tile &tile, 
+	const TileBbox &bbox, const std::vector<unsigned int> &ltx, SharedData &sharedData)
 {
 	vector<string> keyList;
 	vector<vector_tile::Tile_Value> valueList;
@@ -204,7 +204,7 @@ void ProcessLayer(OSMStore &osmStore,
 	// Loop through sub-layers
 	std::time_t start = std::time(0);
 	for (auto mt = ltx.begin(); mt != ltx.end(); ++mt) {
-		uint layerNum = *mt;
+		unsigned int layerNum = *mt;
 		const LayerDef &ld = sharedData.layers.layers[layerNum];
 		if (zoom<ld.minzoom || zoom>ld.maxzoom) { continue; }
 		double simplifyLevel = 0.0, filterArea = 0.0, latp = 0.0;
@@ -237,10 +237,10 @@ void ProcessLayer(OSMStore &osmStore,
 		vtLayer->set_name(layerName);
 		vtLayer->set_version(sharedData.config.mvtVersion);
 		vtLayer->set_extent(bbox.hires ? 8192 : 4096);
-		for (uint j=vtLayer->keys_size(); j<keyList.size(); j++) {
+		for (unsigned int j=vtLayer->keys_size(); j<keyList.size(); j++) {
 			vtLayer->add_keys(keyList[j]);
 		}
-		for (uint j=vtLayer->values_size(); j<valueList.size(); j++) { 
+		for (unsigned int j=vtLayer->values_size(); j<valueList.size(); j++) { 
 			vector_tile::Tile_Value *v = vtLayer->add_values();
 			*v = valueList[j];
 		}
@@ -255,7 +255,7 @@ void handleUserSignal(int signum) {
 	signalStop=true;
 }
 
-bool outputProc(boost::asio::thread_pool &pool, SharedData &sharedData, OSMStore &osmStore, std::vector<OutputObjectRef> const &data, TileCoordinates coordinates, uint zoom)
+bool outputProc(boost::asio::thread_pool &pool, SharedData &sharedData, OSMStore &osmStore, std::vector<OutputObjectRef> const &data, TileCoordinates coordinates, unsigned int zoom)
 {
 	// Create tile
 	vector_tile::Tile tile;

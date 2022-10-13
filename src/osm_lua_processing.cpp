@@ -197,9 +197,9 @@ double OsmLuaProcessing::AreaIntersecting(const string &layerName) {
 
 
 template <typename GeometryT>
-std::vector<uint> OsmLuaProcessing::intersectsQuery(const string &layerName, bool once, GeometryT &geom) const {
+std::vector<unsigned int> OsmLuaProcessing::intersectsQuery(const string &layerName, bool once, GeometryT &geom) const {
 	Box box; geom::envelope(geom, box);
-	std::vector<uint> ids = shpMemTiles.QueryMatchingGeometries(layerName, once, box,
+	std::vector<unsigned int> ids = shpMemTiles.QueryMatchingGeometries(layerName, once, box,
 		[&](const RTree &rtree) { // indexQuery
 			vector<IndexValue> results;
 			rtree.query(geom::index::intersects(box), back_inserter(results));
@@ -216,7 +216,7 @@ template <typename GeometryT>
 double OsmLuaProcessing::intersectsArea(const string &layerName, GeometryT &geom) const {
 	Box box; geom::envelope(geom, box);
 	double area = 0.0;
-	std::vector<uint> ids = shpMemTiles.QueryMatchingGeometries(layerName, false, box,
+	std::vector<unsigned int> ids = shpMemTiles.QueryMatchingGeometries(layerName, false, box,
 		[&](const RTree &rtree) { // indexQuery
 			vector<IndexValue> results;
 			rtree.query(geom::index::intersects(box), back_inserter(results));
@@ -233,9 +233,9 @@ double OsmLuaProcessing::intersectsArea(const string &layerName, GeometryT &geom
 }
 
 template <typename GeometryT>
-std::vector<uint> OsmLuaProcessing::coveredQuery(const string &layerName, bool once, GeometryT &geom) const {
+std::vector<unsigned int> OsmLuaProcessing::coveredQuery(const string &layerName, bool once, GeometryT &geom) const {
 	Box box; geom::envelope(geom, box);
-	std::vector<uint> ids = shpMemTiles.QueryMatchingGeometries(layerName, once, box,
+	std::vector<unsigned int> ids = shpMemTiles.QueryMatchingGeometries(layerName, once, box,
 		[&](const RTree &rtree) { // indexQuery
 			vector<IndexValue> results;
 			rtree.query(geom::index::intersects(box), back_inserter(results));
@@ -353,7 +353,7 @@ void OsmLuaProcessing::Layer(const string &layerName, bool area) {
 		throw out_of_range("ERROR: Layer(): a layer named as \"" + layerName + "\" doesn't exist.");
 	}
 
-	uint layerMinZoom = layers.layers[layers.layerMap[layerName]].minzoom;
+	unsigned int layerMinZoom = layers.layers[layers.layerMap[layerName]].minzoom;
 	OutputGeometryType geomType = isRelation ? (area ? POLYGON_ : MULTILINESTRING_ ) :
 	                                   isWay ? (area ? POLYGON_ : LINESTRING_) : POINT_;
 	try {
@@ -434,7 +434,7 @@ void OsmLuaProcessing::LayerAsCentroid(const string &layerName) {
 		throw out_of_range("ERROR: LayerAsCentroid(): a layer named as \"" + layerName + "\" doesn't exist.");
 	}	
 
-	uint layerMinZoom = layers.layers[layers.layerMap[layerName]].minzoom;
+	unsigned int layerMinZoom = layers.layers[layers.layerMap[layerName]].minzoom;
 	Point geomp;
 	try {
 		geomp = calculateCentroid();
@@ -548,7 +548,7 @@ std::string OsmLuaProcessing::FindInRelation(const std::string &key) {
 }
 
 // Record attribute name/type for vector_layers table
-void OsmLuaProcessing::setVectorLayerMetadata(const uint_least8_t layer, const string &key, const uint type) {
+void OsmLuaProcessing::setVectorLayerMetadata(const uint_least8_t layer, const string &key, const unsigned int type) {
 	layers.layers[layer].attributeMap[key] = type;
 }
 

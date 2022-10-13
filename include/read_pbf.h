@@ -39,7 +39,7 @@ public:
 	void readTags(T &pbfObject, PrimitiveBlock const &pb, tag_map_t &tags) {
 		auto keysPtr = pbfObject.mutable_keys();
 		auto valsPtr = pbfObject.mutable_vals();
-		for (uint n=0; n < pbfObject.keys_size(); n++) {
+		for (unsigned int n=0; n < pbfObject.keys_size(); n++) {
 			tags[pb.stringtable().s(keysPtr->Get(n))] = pb.stringtable().s(valsPtr->Get(n));
 		}
 	}

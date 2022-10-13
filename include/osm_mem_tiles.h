@@ -15,7 +15,7 @@
 class OsmMemTiles : public TileDataSource {
 
 public:
-	OsmMemTiles(uint baseZoom);
+	OsmMemTiles(unsigned int baseZoom);
 
 
 	void Clear();

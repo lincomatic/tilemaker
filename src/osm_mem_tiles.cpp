@@ -1,7 +1,7 @@
 #include "osm_mem_tiles.h"
 using namespace std;
 
-OsmMemTiles::OsmMemTiles(uint baseZoom)
+OsmMemTiles::OsmMemTiles(unsigned int baseZoom)
 	: TileDataSource(baseZoom) 
 { }
 

@@ -133,10 +133,10 @@ bool WriteGeometryVisitor::writeDeltaString(XYString *scaledString, vector_tile:
 	geometry.push_back((dy << 1) ^ (dy >> 31));
 
 	// Then write out the line for each point
-	uint len=0;
+	unsigned int len=0;
 	geometry.push_back(0);						// this'll be our lineTo opcode, we set it later
-	uint end=closePath ? scaledString->size()-1 : scaledString->size();
-	for (uint i=1; i<end; i++) {
+	unsigned int end=closePath ? scaledString->size()-1 : scaledString->size();
+	for (unsigned int i=1; i<end; i++) {
 		int x = scaledString->at(i).first;
 		int y = scaledString->at(i).second;
 		if (x==lastX && y==lastY) { continue; }
@@ -153,7 +153,7 @@ bool WriteGeometryVisitor::writeDeltaString(XYString *scaledString, vector_tile:
 	if (closePath) {
 		geometry.push_back(7+8);				// closePath
 	}
-	for (uint i=0; i<geometry.size(); i++) { 
+	for (unsigned int i=0; i<geometry.size(); i++) { 
 		featurePtr->add_geometry(geometry[i]);
 	};
 	lastPos->first  = lastX;

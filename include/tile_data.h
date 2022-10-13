@@ -28,12 +28,12 @@ public:
 	{ }
 
 	///This must be thread safe!
-	void MergeTileCoordsAtZoom(uint zoom, TileCoordinatesSet &dstCoords) {
+	void MergeTileCoordsAtZoom(unsigned int zoom, TileCoordinatesSet &dstCoords) {
 		MergeTileCoordsAtZoom(zoom, baseZoom, tileIndex, dstCoords);
 	}
 
 	///This must be thread safe!
-	void MergeSingleTileDataAtZoom(TileCoordinates dstIndex, uint zoom, std::vector<OutputObjectRef> &dstTile) {
+	void MergeSingleTileDataAtZoom(TileCoordinates dstIndex, unsigned int zoom, std::vector<OutputObjectRef> &dstTile) {
 		MergeSingleTileDataAtZoom(dstIndex, zoom, baseZoom, tileIndex, dstTile);
 	}
 
@@ -49,8 +49,8 @@ public:
 	}
 
 private:	
-	static void MergeTileCoordsAtZoom(uint zoom, uint baseZoom, const TileIndex &srcTiles, TileCoordinatesSet &dstCoords);
-	static void MergeSingleTileDataAtZoom(TileCoordinates dstIndex, uint zoom, uint baseZoom, const TileIndex &srcTiles, std::vector<OutputObjectRef> &dstTile);
+	static void MergeTileCoordsAtZoom(unsigned int zoom, unsigned int baseZoom, const TileIndex &srcTiles, TileCoordinatesSet &dstCoords);
+	static void MergeSingleTileDataAtZoom(TileCoordinates dstIndex, unsigned int zoom, unsigned int baseZoom, const TileIndex &srcTiles, std::vector<OutputObjectRef> &dstTile);
 };
 
 TileCoordinatesSet GetTileCoordinates(std::vector<class TileDataSource *> const &sources, unsigned int zoom);

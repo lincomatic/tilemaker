@@ -15,6 +15,12 @@ else ifneq ("$(wildcard /usr/include/luajit-2.1/lua.h)","")
   LUA_LIBS := -lluajit-5.1
   LUAJIT := 1
 
+else ifneq ("$(wildcard /mingw64/include/luajit-2.1/lua.h)","")
+  LUA_VER := LuaJIT 2.1
+  LUA_CFLAGS := -I/mingw64/include/luajit-2.1 -DLUAJIT
+  LUA_LIBS := -lluajit-5.1
+  LUAJIT := 1
+
 else ifneq ("$(wildcard /usr/local/include/luajit-2.0/lua.h)","")
   LUA_VER := LuaJIT 2.0
   LUA_CFLAGS := -I/usr/local/include/luajit-2.0 -DLUAJIT
@@ -78,8 +84,8 @@ prefix = /usr/local
 
 MANPREFIX := /usr/share/man
 TM_VERSION ?= $(shell git describe --tags --abbrev=0)
-CXXFLAGS ?= -O3 -Wall -Wno-unknown-pragmas -Wno-sign-compare -std=c++14 -pthread -fPIE -DTM_VERSION=$(TM_VERSION) $(CONFIG)
-LIB := -L$(PLATFORM_PATH)/lib -lz $(LUA_LIBS) -lboost_program_options -lsqlite3 -lboost_filesystem -lboost_system -lboost_iostreams -lprotobuf -lshp -pthread
+CXXFLAGS ?= -DM_PI=3.14159265358979323846 -O3 -Wall -Wno-unknown-pragmas -Wno-sign-compare -std=c++14 -pthread -fPIE -DTM_VERSION=$(TM_VERSION) $(CONFIG)
+LIB := -L$(PLATFORM_PATH)/lib -lz $(LUA_LIBS) -lboost_program_options-mt -lsqlite3 -lboost_filesystem-mt -lboost_system-mt -lboost_iostreams-mt -lprotobuf -lshp -pthread
 INC := -I$(PLATFORM_PATH)/include -isystem ./include -I./src $(LUA_CFLAGS)
 
 # Targets

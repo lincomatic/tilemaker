@@ -15,7 +15,7 @@
 // Shapelib
 #include "shapefil.h"
 
-void fillPointArrayFromShapefile(std::vector<Point> *points, SHPObject *shape, uint part);
+void fillPointArrayFromShapefile(std::vector<Point> *points, SHPObject *shape, unsigned int part);
 
 /// Read requested attributes from a shapefile, and encode into an OutputObject
 void addShapefileAttributes(DBFHandle &dbf, OutputObject &oo, int recordNum, std::unordered_map<int,std::string> &columnMap, std::unordered_map<int,int> &columnTypeMap);
@@ -23,7 +23,7 @@ void addShapefileAttributes(DBFHandle &dbf, OutputObject &oo, int recordNum, std
 /// Read shapefile, and create OutputObjects for all objects within the specified bounding box
 void readShapefile(const Box &clippingBox,
                    class LayerDefinition &layers,
-                   uint baseZoom, uint layerNum,
+                   unsigned int baseZoom, unsigned int layerNum,
 				   class ShpMemTiles &shpMemTiles,
 				   OsmLuaProcessing &osmLuaProcessing);
 

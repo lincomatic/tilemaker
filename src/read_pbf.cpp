@@ -50,7 +50,7 @@ bool PbfReader::ReadNodes(OsmLuaProcessing &output, PrimitiveGroup &pg, Primitiv
 			nodes.push_back(std::make_pair(static_cast<NodeID>(nodeId), node));
 
 			if (significant) {
-				for (uint n=kvStart; n<kvPos-1; n+=2) {
+				for (unsigned int n=kvStart; n<kvPos-1; n+=2) {
 					tags[pb.stringtable().s(dense.keys_vals(n))] = pb.stringtable().s(dense.keys_vals(n+1));
 				}
 				output.setNode(static_cast<NodeID>(nodeId), node, tags);

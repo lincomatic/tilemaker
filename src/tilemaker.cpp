@@ -28,7 +28,7 @@
 #include "rapidjson/filereadstream.h"
 #include "rapidjson/filewritestream.h"
 
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) && !defined(__MINGW64__)
 #include <sys/resource.h>
 #endif
 
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
 	string luaFile;
 	string osmStoreFile;
 	string jsonFile;
-	uint threadNum;
+	unsigned int threadNum;
 	string outputFile;
 	string bbox;
 	bool _verbose = false, sqlite= false, mergeSqlite = false, mapsplit = false, osmStoreCompact = false, skipIntegrity = false;
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
 		("compact",po::bool_switch(&osmStoreCompact),  "Reduce overall memory usage (compact mode).\nNOTE: This requires the input to be renumbered (osmium renumber)")
 		("verbose",po::bool_switch(&_verbose),                                   "verbose error output")
 		("skip-integrity",po::bool_switch(&skipIntegrity),                       "don't enforce way/node integrity")
-		("threads",po::value< uint >(&threadNum)->default_value(0),              "number of threads (automatically detected if 0)");
+		("threads",po::value< unsigned int >(&threadNum)->default_value(0),              "number of threads (automatically detected if 0)");
 	po::positional_options_description p;
 	p.add("input", -1);
 	po::variables_map vm;
@@ -442,7 +442,7 @@ int main(int argc, char* argv[]) {
 		std::size_t tc = 0;
 
 		std::deque< std::pair<unsigned int, TileCoordinates> > tile_coordinates;
-		for (uint zoom=sharedData.config.startZoom; zoom<=sharedData.config.endZoom; zoom++) {
+		for (unsigned int zoom=sharedData.config.startZoom; zoom<=sharedData.config.endZoom; zoom++) {
 			auto zoom_result = GetTileCoordinates(sources, zoom);
 			for(auto&& it: zoom_result) {
 				// If we're constrained to a source tile, check we're within it
@@ -499,7 +499,7 @@ int main(int argc, char* argv[]) {
 
 	google::protobuf::ShutdownProtobufLibrary();
 
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) && !defined(__MINGW64__)
 	if (verbose) {
 		struct rusage r_usage;
 		getrusage(RUSAGE_SELF, &r_usage);

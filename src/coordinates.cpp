@@ -26,18 +26,18 @@ double lat2latp(double lat) { return rad2deg(log(tan(deg2rad(clamp(lat,85.06)+90
 double latp2lat(double latp) { return rad2deg(atan(exp(deg2rad(latp)))*2.0)-90.0; }
 
 // Tile conversions
-double lon2tilexf(double lon, uint z) { return scalbn((lon+180.0) * (1/360.0), (int)z); }
-double latp2tileyf(double latp, uint z) { return scalbn((180.0-latp) * (1/360.0), (int)z); }
-double lat2tileyf(double lat, uint z) { return latp2tileyf(lat2latp(lat), z); }
-uint lon2tilex(double lon, uint z) { return lon2tilexf(lon, z); }
-uint latp2tiley(double latp, uint z) { return latp2tileyf(latp, z); }
-uint lat2tiley(double lat, uint z) { return lat2tileyf(lat, z); }
-double tilex2lon(uint x, uint z) { return scalbn(x, -(int)z) * 360.0 - 180.0; }
-double tiley2latp(uint y, uint z) { return 180.0 - scalbn(y, -(int)z) * 360.0; }
-double tiley2lat(uint y, uint z) { return latp2lat(tiley2latp(y, z)); }
+double lon2tilexf(double lon, unsigned int z) { return scalbn((lon+180.0) * (1/360.0), (int)z); }
+double latp2tileyf(double latp, unsigned int z) { return scalbn((180.0-latp) * (1/360.0), (int)z); }
+double lat2tileyf(double lat, unsigned int z) { return latp2tileyf(lat2latp(lat), z); }
+unsigned int lon2tilex(double lon, unsigned int z) { return lon2tilexf(lon, z); }
+unsigned int latp2tiley(double latp, unsigned int z) { return latp2tileyf(latp, z); }
+unsigned int lat2tiley(double lat, unsigned int z) { return lat2tileyf(lat, z); }
+double tilex2lon(unsigned int x, unsigned int z) { return scalbn(x, -(int)z) * 360.0 - 180.0; }
+double tiley2latp(unsigned int y, unsigned int z) { return 180.0 - scalbn(y, -(int)z) * 360.0; }
+double tiley2lat(unsigned int y, unsigned int z) { return latp2lat(tiley2latp(y, z)); }
 
 // Get a tile index
-TileCoordinates latpLon2index(LatpLon ll, uint baseZoom) {
+TileCoordinates latpLon2index(LatpLon ll, unsigned int baseZoom) {
 	return TileCoordinates(lon2tilex(ll.lon /10000000.0, baseZoom),
 	       latp2tiley(ll.latp/10000000.0, baseZoom));
 }
@@ -72,7 +72,7 @@ void fillCoveredTiles(unordered_set<TileCoordinates> &tileSet) {
 // ------------------------------------------------------
 // Helper class for dealing with spherical Mercator tiles
 
-TileBbox::TileBbox(TileCoordinates i, uint z, bool h) {
+TileBbox::TileBbox(TileCoordinates i, unsigned int z, bool h) {
 	zoom = z;
 	index = i;
 	hires = h;
@@ -136,7 +136,7 @@ MultiPolygon round_coordinates(TileBbox const &bbox, MultiPolygon const &mp)
 }
 
 template<typename T>
-void impl_insertIntermediateTiles(T const &points, uint baseZoom, std::unordered_set<TileCoordinates> &tileSet) {
+void impl_insertIntermediateTiles(T const &points, unsigned int baseZoom, std::unordered_set<TileCoordinates> &tileSet) {
 	Point p2(0, 0);
 	for (auto it = points.begin(); it != points.end(); ++it) {
 		// Line is from p1 to p2
@@ -215,12 +215,12 @@ void impl_insertIntermediateTiles(T const &points, uint baseZoom, std::unordered
 	}
 }
 
-void insertIntermediateTiles(Linestring const &points, uint baseZoom, std::unordered_set<TileCoordinates> &tileSet)
+void insertIntermediateTiles(Linestring const &points, unsigned int baseZoom, std::unordered_set<TileCoordinates> &tileSet)
 {
 	impl_insertIntermediateTiles(points, baseZoom, tileSet);
 }
 
-void insertIntermediateTiles(Ring const &points, uint baseZoom, std::unordered_set<TileCoordinates> &tileSet)
+void insertIntermediateTiles(Ring const &points, unsigned int baseZoom, std::unordered_set<TileCoordinates> &tileSet)
 {
 	impl_insertIntermediateTiles(points, baseZoom, tileSet);
 }

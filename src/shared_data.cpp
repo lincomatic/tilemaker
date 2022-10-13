@@ -17,9 +17,9 @@ SharedData::~SharedData() { }
 // *****************************************************************
 
 // Define a layer (as read from the .json file)
-uint LayerDefinition::addLayer(string name, uint minzoom, uint maxzoom,
-		uint simplifyBelow, double simplifyLevel, double simplifyLength, double simplifyRatio, 
-		uint filterBelow, double filterArea, uint combinePolygonsBelow,
+unsigned int LayerDefinition::addLayer(string name, unsigned int minzoom, unsigned int maxzoom,
+		unsigned int simplifyBelow, double simplifyLevel, double simplifyLength, double simplifyRatio, 
+		unsigned int filterBelow, double filterArea, unsigned int combinePolygonsBelow,
 		const std::string &source,
 		const std::vector<std::string> &sourceColumns,
 		bool allSourceColumns,
@@ -31,19 +31,19 @@ uint LayerDefinition::addLayer(string name, uint minzoom, uint maxzoom,
 	LayerDef layer = { name, minzoom, maxzoom, simplifyBelow, simplifyLevel, simplifyLength, simplifyRatio, 
 		filterBelow, filterArea, combinePolygonsBelow,
 		source, sourceColumns, allSourceColumns, indexed, indexName,
-		std::map<std::string,uint>(), isWriteTo };
+		std::map<std::string,unsigned int>(), isWriteTo };
 	layers.push_back(layer);
-	uint layerNum = layers.size()-1;
+	unsigned int layerNum = layers.size()-1;
 	layerMap[name] = layerNum;
 
 	if (writeTo.empty()) {
-		vector<uint> r = { layerNum };
+		vector<unsigned int> r = { layerNum };
 		layerOrder.push_back(r);
 	} else {
 		if (layerMap.count(writeTo) == 0) {
 			throw out_of_range("ERROR: addLayer(): the layer to write, named as \"" + writeTo + "\", doesn't exist.");
 		}
-		uint lookingFor = layerMap[writeTo];
+		unsigned int lookingFor = layerMap[writeTo];
 		for (auto it = layerOrder.begin(); it!= layerOrder.end(); ++it) {
 			if (it->at(0)==lookingFor) {
 				it->push_back(layerNum);
@@ -197,7 +197,7 @@ void Config::readConfig(rapidjson::Document &jsonConfig, bool &hasClippingBox, B
 			if (it->value["source_columns"].IsTrue()) {
 				allSourceColumns = true;
 			} else {
-				for (uint i=0; i<it->value["source_columns"].Size(); i++) {
+				for (unsigned int i=0; i<it->value["source_columns"].Size(); i++) {
 					sourceColumns.push_back(it->value["source_columns"][i].GetString());
 				}
 			}

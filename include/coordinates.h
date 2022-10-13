@@ -76,18 +76,18 @@ double lat2latp(double lat);
 double latp2lat(double latp);
 
 // Tile conversions
-double lon2tilexf(double lon, uint z);
-double latp2tileyf(double latp, uint z);
-double lat2tileyf(double lat, uint z);
-uint lon2tilex(double lon, uint z);
-uint latp2tiley(double latp, uint z);
-uint lat2tiley(double lat, uint z);
-double tilex2lon(uint x, uint z);
-double tiley2latp(uint y, uint z);
-double tiley2lat(uint y, uint z);
+double lon2tilexf(double lon, unsigned int z);
+double latp2tileyf(double latp, unsigned int z);
+double lat2tileyf(double lat, unsigned int z);
+unsigned int lon2tilex(double lon, unsigned int z);
+unsigned int latp2tiley(double latp, unsigned int z);
+unsigned int lat2tiley(double lat, unsigned int z);
+double tilex2lon(unsigned int x, unsigned int z);
+double tiley2latp(unsigned int y, unsigned int z);
+double tiley2lat(unsigned int y, unsigned int z);
 
 // Get a tile index
-TileCoordinates latpLon2index(LatpLon ll, uint baseZoom);
+TileCoordinates latpLon2index(LatpLon ll, unsigned int baseZoom);
 
 // Earth's (mean) radius
 // http://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html
@@ -99,8 +99,8 @@ double degp2meter(double degp, double latp);
 
 double meter2degp(double meter, double latp);
 
-void insertIntermediateTiles(Linestring const &points, uint baseZoom, std::unordered_set<TileCoordinates> &tileSet);
-void insertIntermediateTiles(Ring const &points, uint baseZoom, std::unordered_set<TileCoordinates> &tileSet);
+void insertIntermediateTiles(Linestring const &points, unsigned int baseZoom, std::unordered_set<TileCoordinates> &tileSet);
+void insertIntermediateTiles(Ring const &points, unsigned int baseZoom, std::unordered_set<TileCoordinates> &tileSet);
 
 // the range between smallest y and largest y is filled, for each x
 void fillCoveredTiles(std::unordered_set<TileCoordinates> &tileSet);
@@ -114,11 +114,11 @@ public:
 	double minLon, maxLon, minLat, maxLat, minLatp, maxLatp;
 	double xmargin, ymargin, xscale, yscale;
 	TileCoordinates index;
-	uint zoom;
+	unsigned int zoom;
 	bool hires;
 	Box clippingBox;
 
-	TileBbox(TileCoordinates i, uint z, bool h);
+	TileBbox(TileCoordinates i, unsigned int z, bool h);
 
 	std::pair<int,int> scaleLatpLon(double latp, double lon) const;
 	std::pair<double, double> floorLatpLon(double latp, double lon) const;

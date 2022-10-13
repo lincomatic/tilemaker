@@ -37,7 +37,7 @@ typedef boost::geometry::model::box<Point> Box;
 typedef boost::geometry::ring_type<Polygon>::type Ring;
 typedef boost::geometry::interior_type<Polygon>::type InteriorRing;
 typedef boost::variant<Point,Linestring,MultiLinestring,MultiPolygon> Geometry;
-typedef std::pair<Box, uint> IndexValue;
+typedef std::pair<Box, unsigned int> IndexValue;
 typedef boost::geometry::index::rtree< IndexValue, boost::geometry::index::quadratic<16> > RTree;
 
 typedef uint64_t NodeID;
