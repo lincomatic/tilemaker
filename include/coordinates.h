@@ -116,20 +116,18 @@ public:
 	TileCoordinates index;
 	uint zoom;
 	bool hires;
+	bool endZoom;
 	Box clippingBox;
 
-	TileBbox(TileCoordinates i, uint z, bool h);
+	TileBbox(TileCoordinates i, uint z, bool h, bool e);
 
 	std::pair<int,int> scaleLatpLon(double latp, double lon) const;
+	MultiPolygon scaleGeometry(MultiPolygon const &src) const;
 	std::pair<double, double> floorLatpLon(double latp, double lon) const;
 
 	Box getTileBox() const;
 	Box getExtendBox() const;
 };
-
-// Round coordinates to integer coordinates of bbox
-// TODO: This should be self-intersection aware!!
-MultiPolygon round_coordinates(TileBbox const &bbox, MultiPolygon const &mp);
 
 #endif //_COORDINATES_H
 

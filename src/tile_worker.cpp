@@ -122,6 +122,18 @@ void CheckNextObjectAndMerge(OSMStore &osmStore, OutputObjectsConstIt &jt, Outpu
 	}
 }
 
+void RemoveInnersBelowSize(MultiPolygon &g, double filterArea) {
+	for (auto &outer : g) {
+		outer.inners().erase(std::remove_if(
+			outer.inners().begin(), 
+			outer.inners().end(), 
+			[&](const Ring &inner) -> bool { 
+				return std::fabs(geom::area(inner)) < filterArea;
+			}),
+		outer.inners().end());
+	}
+}
+
 void ProcessObjects(OSMStore &osmStore, OutputObjectsConstIt ooSameLayerBegin, OutputObjectsConstIt ooSameLayerEnd, 
 	class SharedData &sharedData, double simplifyLevel, double filterArea, bool combinePolygons, unsigned zoom, const TileBbox &bbox,
 	vector_tile::Tile_Layer *vtLayer, vector<string> &keyList, vector<vector_tile::Tile_Value> &valueList) {
@@ -152,6 +164,7 @@ void ProcessObjects(OSMStore &osmStore, OutputObjectsConstIt ooSameLayerBegin, O
 
 			if (oo->geomType == POLYGON_ && filterArea > 0.0) {
 				if (geom::area(g)<filterArea) continue;
+				RemoveInnersBelowSize(boost::get<MultiPolygon>(g), filterArea);
 			}
 
 			//This may increment the jt iterator
@@ -259,7 +272,7 @@ bool outputProc(boost::asio::thread_pool &pool, SharedData &sharedData, OSMStore
 {
 	// Create tile
 	vector_tile::Tile tile;
-	TileBbox bbox(coordinates, zoom, sharedData.config.highResolution && zoom==sharedData.config.endZoom);
+	TileBbox bbox(coordinates, zoom, sharedData.config.highResolution && zoom==sharedData.config.endZoom, zoom==sharedData.config.endZoom);
 	if (sharedData.config.clippingBoxFromJSON && (sharedData.config.maxLon<=bbox.minLon 
 		|| sharedData.config.minLon>=bbox.maxLon || sharedData.config.maxLat<=bbox.minLat 
 		|| sharedData.config.minLat>=bbox.maxLat)) { return true; }
