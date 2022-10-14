@@ -123,6 +123,12 @@ string OsmLuaProcessing::Find(const string& key) const {
 	return it->second;
 }
 
+#ifdef TRIM_NAME_WHITESPACE
+#include <boost/algorithm/string/trim.hpp>
+using namespace boost::algorithm;
+#endif
+
+
 // store all the names, return name count
 string OsmLuaProcessing::GetMultilingualName() const {
   string _nameml = "";
@@ -130,7 +136,13 @@ string OsmLuaProcessing::GetMultilingualName() const {
   auto it = currentTags.find("name");
   if (it != currentTags.end()) { // has base name
     // store base name
-    auto &basename = it->second;
+#ifdef TRIM_NAME_WHITESPACE
+    string basename = it->second;
+    trim_left(basename);
+    trim_right(basename);
+#else
+    string &basename = it->second;
+#endif
     _nameml = basename;
     //    this->Attribute(it->first,basename);
     //    cout << "base_name: " << basename << "--\n";
@@ -139,7 +151,13 @@ string OsmLuaProcessing::GetMultilingualName() const {
       auto tag = it->first;
       if (tag.find("name:") == 0) {
         transform(tag.begin(), tag.end(), tag.begin(), ::tolower);// make case consistent - lower
-        auto &name = it->second;
+#ifdef TRIM_NAME_WHITESPACE
+        string name = it->second;
+        trim_left(name);
+        trim_right(name);
+#else
+        string &name = it->second;
+#endif
         // store only if different from base name
         if (name != basename) {
         //          cout << tag << ' ' << name << "--\n";
