@@ -143,9 +143,9 @@ string OsmLuaProcessing::GetMultilingualName() const {
         // store only if different from base name
         if (name != basename) {
         //          cout << tag << ' ' << name << "--\n";
-          _nameml += "*";//"\r";
+          _nameml += "\r";
           _nameml += tag.substr(5);
-          _nameml += ":";//"\b";
+          _nameml += "\b";
           _nameml += name;
         }
       }
