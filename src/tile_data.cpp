@@ -29,6 +29,24 @@ void TileDataSource::MergeTileCoordsAtZoom(uint zoom, uint baseZoom, const TileI
 	}
 }
 
+// Find the tiles used by the "large objects" from the rtree index
+void TileDataSource::MergeLargeCoordsAtZoom(uint zoom, TileCoordinatesSet &dstCoords) {
+	for(auto const &result: box_rtree) {
+		int scale = pow(2, baseZoom-zoom);
+		TileCoordinate minx = result.first.min_corner().x() / scale;
+		TileCoordinate maxx = result.first.max_corner().x() / scale;
+		TileCoordinate miny = result.first.min_corner().y() / scale;
+		TileCoordinate maxy = result.first.max_corner().y() / scale;
+		for (int x=minx; x<=maxx; x++) {
+			for (int y=miny; y<=maxy; y++) {
+				TileCoordinates newIndex(x, y);
+				dstCoords.insert(newIndex);
+			}
+		}
+	}
+}
+
+// Copy objects from the tile at dstIndex (in the dataset srcTiles) into dstTile
 void TileDataSource::MergeSingleTileDataAtZoom(TileCoordinates dstIndex, uint zoom, uint baseZoom, const TileIndex &srcTiles, std::vector<OutputObjectRef> &dstTile) {
 	if (zoom==baseZoom) {
 		// at z14, we can just use tileIndex
@@ -59,24 +77,55 @@ void TileDataSource::MergeSingleTileDataAtZoom(TileCoordinates dstIndex, uint zo
 	}
 }
 
+// Copy objects from the large index into dstTile
+void TileDataSource::MergeLargeObjects(TileCoordinates dstIndex, uint zoom, std::vector<OutputObjectRef> &dstTile) {
+	int scale = pow(2, baseZoom - zoom);
+	TileCoordinates srcIndex1( dstIndex.x   *scale  ,  dstIndex.y   *scale  );
+	TileCoordinates srcIndex2((dstIndex.x+1)*scale-1, (dstIndex.y+1)*scale-1);
+	Box box = Box(geom::make<Point>(srcIndex1.x, srcIndex1.y),
+	              geom::make<Point>(srcIndex2.x, srcIndex2.y));
+	for(auto const &result: box_rtree | boost::geometry::index::adaptors::queried(boost::geometry::index::intersects(box)))
+		dstTile.push_back(result.second);
+}
+
 TileCoordinatesSet GetTileCoordinates(std::vector<class TileDataSource *> const &sources, unsigned int zoom) {
 	TileCoordinatesSet tileCoordinates;
 
 	// Create list of tiles
 	tileCoordinates.clear();
-	for(size_t i=0; i<sources.size(); i++)
+	for(size_t i=0; i<sources.size(); i++) {
 		sources[i]->MergeTileCoordsAtZoom(zoom, tileCoordinates);
+		sources[i]->MergeLargeCoordsAtZoom(zoom, tileCoordinates);
+	}
 
 	return tileCoordinates;
 }
 
-std::vector<OutputObjectRef> GetTileData(std::vector<class TileDataSource *> const &sources, TileCoordinates coordinates, unsigned int zoom)
-{
+std::vector<OutputObjectRef> GetTileData(std::vector<class TileDataSource *> const &sources, 
+                                         std::vector<bool> const &sortOrders, TileCoordinates coordinates, 
+                                         unsigned int zoom) {
 	std::vector<OutputObjectRef> data;
-	for(size_t i=0; i<sources.size(); i++)
+	for(size_t i=0; i<sources.size(); i++) {
 		sources[i]->MergeSingleTileDataAtZoom(coordinates, zoom, data);
+		sources[i]->MergeLargeObjects(coordinates, zoom, data);
+	}
 
-	boost::sort::pdqsort(data.begin(), data.end());
+	// Lexicographic comparison, with the order of: layer, geomType, attributes, and objectID.
+	// Note that attributes is preferred to objectID.
+	// It is to arrange objects with the identical attributes continuously.
+	// Such objects will be merged into one object, to reduce the size of output.
+	boost::sort::pdqsort(data.begin(), data.end(), [&sortOrders](const OutputObjectRef x, const OutputObjectRef y) -> bool {
+		if (x->layer < y->layer) return true;
+		if (x->layer > y->layer) return false;
+		if (x->z_order < y->z_order) return  sortOrders[x->layer];
+		if (x->z_order > y->z_order) return !sortOrders[x->layer];
+		if (x->geomType < y->geomType) return true;
+		if (x->geomType > y->geomType) return false;
+		if (x->attributes.get() < y->attributes.get()) return true;
+		if (x->attributes.get() > y->attributes.get()) return false;
+		if (x->objectID < y->objectID) return true;
+		return false;
+	});
 	data.erase(unique(data.begin(), data.end()), data.end());
 	return data;
 }

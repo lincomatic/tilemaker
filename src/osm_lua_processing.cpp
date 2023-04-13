@@ -55,7 +55,7 @@ OsmLuaProcessing::OsmLuaProcessing(
 		.addOverloadedFunctions("AttributeNumeric", &OsmLuaProcessing::AttributeNumeric, &OsmLuaProcessing::AttributeNumericWithMinZoom)
 		.addOverloadedFunctions("AttributeBoolean", &OsmLuaProcessing::AttributeBoolean, &OsmLuaProcessing::AttributeBooleanWithMinZoom)
 		.addFunction("MinZoom", &OsmLuaProcessing::MinZoom)
-		.addFunction("ZOrder", &OsmLuaProcessing::ZOrder)
+		.addOverloadedFunctions("ZOrder", &OsmLuaProcessing::ZOrder, &OsmLuaProcessing::ZOrderWithScale)
 		.addFunction("Accept", &OsmLuaProcessing::Accept)
 		.addFunction("NextRelation", &OsmLuaProcessing::NextRelation)
 		.addFunction("FindInRelation", &OsmLuaProcessing::FindInRelation)
@@ -67,8 +67,9 @@ OsmLuaProcessing::OsmLuaProcessing(
 
 	// ---- Call init_function of Lua logic
 
-	luaState("if init_function~=nil then init_function() end");
-
+	if (!!luaState["init_function"]) {
+		luaState["init_function"](this->config.projectName);
+	}
 }
 
 OsmLuaProcessing::~OsmLuaProcessing() {
@@ -465,7 +466,7 @@ void OsmLuaProcessing::LayerAsCentroid(const string &layerName) {
 		cout << "Couldn't find " << (isRelation ? "relation " : isWay ? "way " : "node " ) << originalOsmID << ": " << err.what() << endl;
 		return;
 	} catch (geom::centroid_exception &err) {
-		cerr << "Problem geometry " << (isRelation ? "relation " : isWay ? "way " : "node " ) << originalOsmID << ": " << err.what() << endl;
+		if (verbose) cerr << "Problem geometry " << (isRelation ? "relation " : isWay ? "way " : "node " ) << originalOsmID << ": " << err.what() << endl;
 		return;
 	} catch (std::invalid_argument &err) {
 		cerr << "Error in OutputObjectOsmStore constructor for " << (isRelation ? "relation " : isWay ? "way " : "node " ) << originalOsmID << ": " << err.what() << endl;
@@ -551,7 +552,21 @@ void OsmLuaProcessing::MinZoom(const double z) {
 // Set z_order
 void OsmLuaProcessing::ZOrder(const double z) {
 	if (outputs.size()==0) { ProcessingError("Can't set z_order if no Layer set"); return; }
+#ifdef FLOAT_Z_ORDER
+	outputs.back().first->setZOrder(make_valid<float>(z));
+#else
 	outputs.back().first->setZOrder(make_valid<int>(z));
+#endif
+}
+
+// Set z_order (variant with scaling)
+void OsmLuaProcessing::ZOrderWithScale(const double z, const double scale) {
+	if (outputs.size()==0) { ProcessingError("Can't set z_order if no Layer set"); return; }
+#ifdef FLOAT_Z_ORDER
+	outputs.back().first->setZOrder(make_valid<float>(z));
+#else
+	outputs.back().first->setZOrder(make_valid<int>(z/scale*127));
+#endif
 }
 
 // Read scanned relations
@@ -659,29 +674,45 @@ void OsmLuaProcessing::setWay(WayID wayId, LatpLonVec const &llVec, const tag_ma
 		// create a list of tiles this way passes through (tileSet)
 		unordered_set<TileCoordinates> tileSet;
 		try {
-			insertIntermediateTiles(osmStore.llListLinestring(llVecPtr->cbegin(),llVecPtr->cend()), this->config.baseZoom, tileSet);
+			Linestring ls = osmStore.llListLinestring(llVecPtr->cbegin(),llVecPtr->cend());
+			insertIntermediateTiles(ls, this->config.baseZoom, tileSet);
 
 			// then, for each tile, store the OutputObject for each layer
 			bool polygonExists = false;
+			TileCoordinate minTileX = TILE_COORDINATE_MAX, maxTileX = 0, minTileY = TILE_COORDINATE_MAX, maxTileY = 0;
 			for (auto it = tileSet.begin(); it != tileSet.end(); ++it) {
 				TileCoordinates index = *it;
+				minTileX = std::min(index.x, minTileX);
+				minTileY = std::min(index.y, minTileY);
+				maxTileX = std::max(index.x, maxTileX);
+				maxTileY = std::max(index.y, maxTileY);
 				for (auto jt = this->outputs.begin(); jt != this->outputs.end(); ++jt) {
 					if (jt->first->geomType == POLYGON_) {
 						polygonExists = true;
 						continue;
 					}
-					osmMemTiles.AddObject(index, jt->first);
+					osmMemTiles.AddObject(index, jt->first); // not a polygon
 				}
 			}
 
 			// for polygon, fill inner tiles
 			if (polygonExists) {
-				fillCoveredTiles(tileSet);
-				for (auto it = tileSet.begin(); it != tileSet.end(); ++it) {
-					TileCoordinates index = *it;
-					for (auto jt = this->outputs.begin(); jt != this->outputs.end(); ++jt) {
-						if (jt->first->geomType != POLYGON_) continue;
-						osmMemTiles.AddObject(index, jt->first);
+				bool tilesetFilled = false;
+				uint size = (maxTileX - minTileX + 1) * (maxTileY - minTileY + 1);
+				for (auto jt = this->outputs.begin(); jt != this->outputs.end(); ++jt) {
+					if (jt->first->geomType != POLYGON_) continue;
+					if (size>= 16) {
+						// Larger objects - add to rtree
+						Box box = Box(geom::make<Point>(minTileX, minTileY),
+						              geom::make<Point>(maxTileX, maxTileY));
+						osmMemTiles.AddObjectToLargeIndex(box, jt->first);
+					} else {
+						// Smaller objects - add to each individual tile index
+						if (!tilesetFilled) { fillCoveredTiles(tileSet); tilesetFilled = true; }
+						for (auto it = tileSet.begin(); it != tileSet.end(); ++it) {
+							TileCoordinates index = *it;
+							osmMemTiles.AddObject(index, jt->first);
+						}
 					}
 				}
 			}
@@ -726,28 +757,46 @@ void OsmLuaProcessing::setRelation(int64_t relationId, WayVec const &outerWayVec
 			return;
 		}		
 
-		unordered_set<TileCoordinates> tileSet;
-		if (mp.size() == 1) {
-			insertIntermediateTiles(mp[0].outer(), this->config.baseZoom, tileSet);
-			fillCoveredTiles(tileSet);
-		} else {
-			for (Polygon poly: mp) {
-				unordered_set<TileCoordinates> tileSetTmp;
-				insertIntermediateTiles(poly.outer(), this->config.baseZoom, tileSetTmp);
-				fillCoveredTiles(tileSetTmp);
-				tileSet.insert(tileSetTmp.begin(), tileSetTmp.end());
-			}
-		}
-
 		for (auto jt = this->outputs.begin(); jt != this->outputs.end(); ++jt) {
 			// Store the attributes of the generated geometry
 			jt->first->setAttributeSet(attributeStore.store_set(jt->second));		
 		}
 
+		unordered_set<TileCoordinates> tileSet;
+		bool singleOuter = mp.size()==1;
+		for (Polygon poly: mp) {
+			unordered_set<TileCoordinates> tileSetTmp;
+			insertIntermediateTiles(poly.outer(), this->config.baseZoom, tileSetTmp);
+			fillCoveredTiles(tileSetTmp);
+			if (singleOuter) {
+				tileSet = std::move(tileSetTmp);
+			} else {
+				tileSet.insert(tileSetTmp.begin(), tileSetTmp.end());
+			}
+		}
+		
+		TileCoordinate minTileX = TILE_COORDINATE_MAX, maxTileX = 0, minTileY = TILE_COORDINATE_MAX, maxTileY = 0;
 		for (auto it = tileSet.begin(); it != tileSet.end(); ++it) {
 			TileCoordinates index = *it;
-			for (auto jt = this->outputs.begin(); jt != this->outputs.end(); ++jt) {
-				osmMemTiles.AddObject(index, jt->first);
+			minTileX = std::min(index.x, minTileX);
+			minTileY = std::min(index.y, minTileY);
+			maxTileX = std::max(index.x, maxTileX);
+			maxTileY = std::max(index.y, maxTileY);
+		}
+		for (auto jt = this->outputs.begin(); jt != this->outputs.end(); ++jt) {
+			if (tileSet.size()>=16) {
+				// Larger objects - add to rtree
+				// note that the bbox is currently the envelope of the entire multipolygon,
+				// which is suboptimal in shapes like (_) ...... (_) where the outers are significantly disjoint
+				Box box = Box(geom::make<Point>(minTileX, minTileY),
+				              geom::make<Point>(maxTileX, maxTileY));
+				osmMemTiles.AddObjectToLargeIndex(box, jt->first);
+			} else {
+				// Smaller objects - add to each individual tile index
+				for (auto it = tileSet.begin(); it != tileSet.end(); ++it) {
+					TileCoordinates index = *it;
+					osmMemTiles.AddObject(index, jt->first);
+				}
 			}
 		}
 

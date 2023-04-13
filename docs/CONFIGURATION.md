@@ -73,6 +73,7 @@ You can add optional parameters to layers:
 * `filter_below` - filter areas by minimum size below this zoom level
 * `filter_area` - minimum size (in square degrees of longitude) for the zoom level `filter_below-1`
 * `combine_polygons_below` - merge adjacent polygons with the same attributes below this zoom level
+* `z_order_ascending` - sort features in ascending order by a numeric value set in the Lua processing script (defaults to `true`: specify `false` for descending order)
 
 Use these options to combine different layer specs within one outputted layer. For example:
 
@@ -109,9 +110,9 @@ For example:
 Your Lua file needs to supply 5 things:
 
 1. `node_keys`, a list of those OSM keys which indicate that a node should be processed
-2. `init_function` (optional), a function to initialize Lua logic
-2. `node_function`, a function to process an OSM node and add it to layers
-3. `way_function`, a function to process an OSM way and add it to layers
+2. `init_function(name)` (optional), a function to initialize Lua logic
+2. `node_function(node)`, a function to process an OSM node and add it to layers
+3. `way_function(way)`, a function to process an OSM way and add it to layers
 3. `exit_function` (optional), a function to finalize Lua logic (useful to show statistics)
 
 `node_keys` is a simple list (or in Lua parlance, a 'table') of OSM tag keys. If a node has one of those keys, it will be processed by `node_function`; if not, it'll be skipped. For example, if you wanted to show highway crossings and railway stations, it should be `{ "highway", "railway" }`. (This avoids the need to process the vast majority of nodes which contain no important tags at all.)
@@ -133,7 +134,7 @@ To do that, you use these methods:
 * `node:Attribute(key,value)` or `node:Attribute(key,value)`: add an attribute to the most recently written layer.
 * `node:AttributeNumeric(key,value)`, `node:AttributeBoolean(key,value)` (and `way:`...): for numeric/boolean columns.
 * `node:Id()` or `way:Id()`: get the OSM ID of the current object.
-* `node:ZOrder(number)` or `way:ZOrder(number)`: Set a numeric value (default 0, 1-byte unsigned integer) used to sort features within a layer. Use this feature to ensure a proper rendering order if the rendering engine itself does not support sorting. Sorting is not supported across layers merged with `write_to`. Features with different z-order are not merged if `combine_below` or `combine_polygons_below` is used.
+* `node:ZOrder(number)` or `way:ZOrder(number)`: Set a numeric value (default 0, 1-byte signed integer) used to sort features within a layer. Use this feature to ensure a proper rendering order if the rendering engine itself does not support sorting. Sorting is not supported across layers merged with `write_to`. Features with different z-order are not merged if `combine_below` or `combine_polygons_below` is used.
 * `node:MinZoom(zoom)` or `way:MinZoom(zoom)`: set the minimum zoom level (0-15) at which this object will be written. Note that the JSON layer configuration minimum still applies (so `:MinZoom(5)` will have no effect if your layer only starts at z6).
 * `way:Length()` and `way:Area()`: return the length (metres)/area (square metres) of the current object. Requires recent Boost.
 * `way:Centroid()`: return the lat/lon of the centre of the current object as a two-element Lua table (element 1 is lat, 2 is lon).

@@ -129,7 +129,7 @@ public:
     bool CorrectGeometry(GeometryT &geom)
     {
 #if BOOST_VERSION >= 105800
-        geom::validity_failure_type failure;
+        geom::validity_failure_type failure = geom::validity_failure_type::no_failure;
         if (isRelation && !geom::is_valid(geom,failure)) {
             if (verbose) std::cout << "Relation " << originalOsmID << " has " << boost_validity_error(failure) << std::endl;
         } else if (isWay && !geom::is_valid(geom,failure)) {
@@ -164,6 +164,7 @@ public:
 	void AttributeBooleanWithMinZoom(const std::string &key, const bool val, const char minzoom);
 	void MinZoom(const double z);
 	void ZOrder(const double z);
+	void ZOrderWithScale(const double z, const double scale);
 	
 	// Relation scan support
 	kaguya::optional<int> NextRelation();

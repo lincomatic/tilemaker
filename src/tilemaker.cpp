@@ -331,6 +331,7 @@ int main(int argc, char* argv[]) {
 	// ----	Read all PBFs
 	
 	PbfReader pbfReader(osmStore);
+	std::vector<bool> sortOrders = layers.getSortOrders();
 
 	if (!mapsplit) {
 		for (auto inputFile : inputFiles) {
@@ -347,7 +348,7 @@ int main(int argc, char* argv[]) {
 				});	
 			if (ret != 0) return ret;
 		} 
-		osmStore.clear(); // no longer needed
+		void_mmap_allocator::shutdown(); // this clears the mmap'ed nodes/ways/relations (quickly!)
 	}
 
 	// ----	Initialise SharedData
@@ -474,7 +475,7 @@ int main(int argc, char* argv[]) {
 				for(std::size_t i = start_index; i < end_index; ++i) {
 					unsigned int zoom = tile_coordinates[i].first;
 					TileCoordinates coords = tile_coordinates[i].second;
-					outputProc(pool, sharedData, osmStore, GetTileData(sources, coords, zoom), coords, zoom);
+					outputProc(pool, sharedData, osmStore, GetTileData(sources, sortOrders, coords, zoom), coords, zoom);
 				}
 
 				const std::lock_guard<std::mutex> lock(io_mutex);
@@ -506,8 +507,6 @@ int main(int argc, char* argv[]) {
 		cout << "\nMemory used: " << r_usage.ru_maxrss << endl;
 	}
 #endif
-
-	void_mmap_allocator::shutdown();
 
 	cout << endl << "Filled the tileset with good things at " << sharedData.outputFile << endl;
 }

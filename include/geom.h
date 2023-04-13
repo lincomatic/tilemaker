@@ -25,6 +25,13 @@ using uint = unsigned int;
 #include <boost/interprocess/managed_external_buffer.hpp>
 #include <boost/interprocess/allocators/node_allocator.hpp>
 
+#define OSMID_TYPE_OFFSET 40
+#define OSMID_MASK      ((1L<<OSMID_TYPE_OFFSET)-1)
+#define OSMID_SHAPE     (0L<<OSMID_TYPE_OFFSET)
+#define OSMID_NODE      (1L<<OSMID_TYPE_OFFSET)
+#define OSMID_WAY       (2L<<OSMID_TYPE_OFFSET)
+#define OSMID_RELATION  (3L<<OSMID_TYPE_OFFSET)
+
 namespace bi = boost::interprocess;
 
 typedef boost::geometry::model::d2::point_xy<double> Point; 
@@ -81,6 +88,11 @@ template<class GeometryT>
 void make_valid(GeometryT &geom) { }
 
 void make_valid(MultiPolygon &mp);
+
+Point intersect_edge(Point const &a, Point const &b, char edge, Box const &bbox);
+char bit_code(Point const &p, Box const &bbox);
+void fast_clip(Ring &points, Box const &bbox);
+void fast_clip(MultiPolygon &mp, Box const &bbox);
 
 #endif //_GEOM_TYPES_H
 

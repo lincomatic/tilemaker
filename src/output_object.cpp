@@ -167,23 +167,11 @@ Geometry buildWayGeometry(OSMStore &osmStore, OutputObject const &oo, const Tile
 					std::min(box.max_corner().y(), extBox.max_corner().y()));
 			}
 
-			Polygon clippingPolygon;
-			geom::convert(box, clippingPolygon);
-	
-			try {
-				MultiPolygon mp;
-				if (geom::within(input, clippingPolygon)) { geom::assign(mp, input); return mp; }
-				// Work around boost::geometry intersection issues by doing each constituent polygon at a time
-				for (auto &p : input) {
-					MultiPolygon out;
-					geom::intersection(p, clippingPolygon, out);
-					for (auto &o : out) mp.emplace_back(move(o));
-				}
-				return mp;
-			} catch (geom::overlay_invalid_input_exception &err) {
-				std::cout << "Couldn't clip polygon (self-intersection)" << std::endl;
-				return MultiPolygon(); // blank
-			}
+			MultiPolygon mp;
+			geom::assign(mp, input);
+			fast_clip(mp, box);
+			geom::correct(mp);
+			return mp;
 		}
 
 		default:
@@ -232,23 +220,6 @@ bool operator==(const OutputObjectRef x, const OutputObjectRef y) {
 		x->geomType == y->geomType &&
 		x->attributes == y->attributes &&
 		x->objectID == y->objectID;
-} 
-
-// Do lexicographic comparison, with the order of: layer, geomType, attributes, and objectID.
-// Note that attributes is preffered to objectID.
-// It is to arrange objects with the identical attributes continuously.
-// Such objects will be merged into one object, to reduce the size of output.
-bool operator<(const OutputObjectRef x, const OutputObjectRef y) {
-	if (x->layer < y->layer) return true;
-	if (x->layer > y->layer) return false;
-	if (x->z_order < y->z_order) return true;
-	if (x->z_order > y->z_order) return false;
-	if (x->geomType < y->geomType) return true;
-	if (x->geomType > y->geomType) return false;
-	if (x->attributes.get() < y->attributes.get()) return true;
-	if (x->attributes.get() > y->attributes.get()) return false;
-	if (x->objectID < y->objectID) return true;
-	return false;
 } 
 
 namespace vector_tile {

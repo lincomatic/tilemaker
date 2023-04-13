@@ -44,7 +44,7 @@ Then, to serve your tiles using the demonstration server:
 
 You can now navigate to http://localhost:8080/ and see your map!
 
-(If you don't already have them, you'll need to install Ruby and the required gems to run the demonstration server. On Ubuntu, for example, `sudo apt install sqlite3 libsqlite3-dev ruby ruby-dev` and then `sudo gem install sqlite3 cgi glug rack`.)
+(If you don't already have them, you'll need to install Ruby and the required gems to run the demonstration server. On Ubuntu, for example, `sudo apt install sqlite3 libsqlite3-dev ruby ruby-dev` and then `sudo gem install sqlite3 cgi glug rack rackup`.)
 
 ## Your own configuration
 
@@ -90,4 +90,4 @@ Formatting: braces and indents as shown, hard tabs (4sp). (Yes, I know.) Please 
 
 Tilemaker is maintained by Richard Fairhurst and supported by [many contributors](https://github.com/systemed/tilemaker/graphs/contributors).
 
-Copyright tilemaker contributors, 2015-2021. The tilemaker code is licensed as FTWPL; you may do anything you like with this code and there is no warranty. The included sqlite_modern_cpp (Amin Roosta) is MIT; [kaguya](https://github.com/satoren/kaguya) is licensed under the Boost Software Licence.
+Copyright tilemaker contributors, 2015-2023. The tilemaker code is licensed as FTWPL; you may do anything you like with this code and there is no warranty. The included sqlite_modern_cpp (Amin Roosta) is MIT; [kaguya](https://github.com/satoren/kaguya) is licensed under the Boost Software Licence.

@@ -15,14 +15,20 @@
 #include "osmformat.pb.h"
 #include "vector_tile.pb.h"
 
-enum OutputGeometryType { POINT_, LINESTRING_, MULTILINESTRING_, POLYGON_ };
+#ifdef FLOAT_Z_ORDER
+typedef float ZOrder;
+#else
+typedef int8_t ZOrder;
+#endif
+
+enum OutputGeometryType : unsigned int { POINT_, LINESTRING_, MULTILINESTRING_, POLYGON_ };
 
 #define OSMID_TYPE_OFFSET	40
-#define OSMID_MASK 		((1L<<OSMID_TYPE_OFFSET)-1)
-#define OSMID_SHAPE 	(0L<<OSMID_TYPE_OFFSET)
-#define OSMID_NODE 		(1L<<OSMID_TYPE_OFFSET)
-#define OSMID_WAY 		(2L<<OSMID_TYPE_OFFSET)
-#define OSMID_RELATION 	(3L<<OSMID_TYPE_OFFSET)
+#define OSMID_MASK 		((1ULL<<OSMID_TYPE_OFFSET)-1)
+#define OSMID_SHAPE 	(0ULL<<OSMID_TYPE_OFFSET)
+#define OSMID_NODE 		(1ULL<<OSMID_TYPE_OFFSET)
+#define OSMID_WAY 		(2ULL<<OSMID_TYPE_OFFSET)
+#define OSMID_RELATION 	(3ULL<<OSMID_TYPE_OFFSET)
 
 //\brief Display the geometry type
 std::ostream& operator<<(std::ostream& os, OutputGeometryType geomType);
@@ -46,16 +52,18 @@ protected:
 public:
 	NodeID objectID 			: 42;					// id of way (linestring/polygon) or node (point)
 	uint_least8_t layer 		: 8;					// what layer is it in?
-	int8_t z_order				: 8;					// z_order: used for sorting features within layers
+	ZOrder z_order				;						// z_order: used for sorting features within layers
 	OutputGeometryType geomType : 2;					// point, linestring, polygon
 	unsigned minZoom 			: 4;
 
 	AttributeStoreRef attributes;
 
-	void setZOrder(const int z) {
+	void setZOrder(const ZOrder z) {
+#ifndef FLOAT_Z_ORDER
 		if (z <= -127 || z >= 127) {
 			throw std::runtime_error("z_order is limited to 1 byte signed integer.");
 		}
+#endif
 		z_order = z;
 	}
 
@@ -155,14 +163,6 @@ LatpLon buildNodeGeometry(OSMStore &osmStore, OutputObject const &oo, const Tile
 // Comparison functions
 
 bool operator==(const OutputObjectRef x, const OutputObjectRef y);
-
-/**
- * Do lexicographic comparison, with the order of: layer, geomType, attributes, and objectID.
- * Note that attributes is preferred to objectID.
- * It is to arrange objects with the identical attributes continuously.
- * Such objects will be merged into one object, to reduce the size of output.
- */
-bool operator<(const OutputObjectRef x, const OutputObjectRef y);
 
 namespace vector_tile {
 	bool operator==(const vector_tile::Tile_Value &x, const vector_tile::Tile_Value &y);
